@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام حاسبة جدول الوديات الشهري - جدول العرض</title>
+    
+    <!-- الخطوط والأيقونات -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- مكتبة تحويل HTML إلى PDF مباشر -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <!-- مكتبة تصدير Excel المحسنة بدعم التنسيقات والألوان -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+
+    <style>
+        :root {
+            --bg-light: #f8fafc;
+            --card-bg: #ffffff;
+            --border-color: #cbd5e1;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --primary-blue: #0284c7;
+            --excel-green: #16a34a;
+
+            /* ألوان مميزة للمجموعات */
+            --grp-1: #0284c7; /* الأولى - أزرق */
+            --grp-2: #d97706; /* الثانية - برتقالي */
+            --grp-3: #7c3aed; /* الثالثة - بنفسجي */
+            --grp-4: #059669; /* الرابعة - أخضر */
+            --grp-5: #dc2626; /* الخامسة - أحمر */
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-main);
+            padding: 15px 10px;
+            direction: rtl;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+        }
+
+        .app-header {
+            background: #ffffff;
+            border: 2px solid var(--primary-blue);
+            border-radius: 12px;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-brand .logo-icon {
+            font-size: 1.8rem;
+            color: var(--primary-blue);
+        }
+
+        .header-brand h1 {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1.2;
+        }
+
+        .header-brand p {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .header-badge {
+            background: #f0f9ff;
+            color: var(--primary-blue);
+            border: 1px solid #bae6fd;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        /* كارت من مداوم الآن */
+        .now-duty-card {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: #ffffff;
+            border-radius: 12px;
+            padding: 14px 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .now-duty-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .now-duty-info i {
+            font-size: 1.8rem;
+            color: #7dd3fc;
+        }
+
+        .now-duty-info h2 {
+            font-size: 1.05rem;
+            font-weight: 800;
+        }
+
+        .now-duty-info p {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+
+        .btn-check-now {
+            background: #ffffff;
+            color: var(--primary-blue);
+            border: none;
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+
+        .btn-check-now:hover {
+            background: #f0f9ff;
+            transform: translateY(-1px);
+        }
+
+        .date-control-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            flex-wrap: wrap;
+        }
+
+        .date-control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .date-control-group label {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .date-control-group input[type="date"] {
+            padding: 6px 12px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.88rem;
+            font-family: 'Cairo', sans-serif;
+            color: var(--text-main);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .date-control-group input[type="date"]:focus {
+            border-color: var(--primary-blue);
+        }
+
+        .month-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            page-break-after: always;
+            page-break-inside: avoid;
+        }
+
+        .month-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--primary-blue);
+        }
+
+        .month-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--primary-blue);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-action {
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: opacity 0.2s;
+        }
+
+        .btn-pdf {
+            background: var(--primary-blue);
+            box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
+        }
+
+        .btn-excel {
+            background: var(--excel-green);
+            box-shadow: 0 2px 6px rgba(22, 163, 74, 0.25);
+        }
+
+        .btn-action:hover {
+            opacity: 0.9;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 6px;
+            border: 1.5px solid #334155;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+            font-size: 0.85rem;
+            background: #ffffff;
+        }
+
+        th, td {
+            border: 1px solid #94a3b8;
+            padding: 8px 4px;
+            vertical-align: middle;
+            height: 48px;
+        }
+
+        th {
+            background: #334155;
+            color: #ffffff;
+            font-weight: 800;
+            font-size: 0.85rem;
+            padding: 8px 2px;
+        }
+
+        .th-time {
+            font-size: 0.72rem;
+            color: #38bdf8;
+            display: block;
+            font-weight: 700;
+        }
+
+        .day-cell {
+            background: #f1f5f9;
+            font-weight: 800;
+            color: #0f172a;
+            font-size: 0.85rem;
+        }
+
+        .date-cell {
+            background: #f8fafc;
+            line-height: 1.3;
+            padding: 4px;
+        }
+
+        .hijri-date {
+            color: var(--primary-blue);
+            font-weight: 700;
+            font-size: 0.8rem;
+            display: block;
+        }
+
+        .greg-date {
+            color: #64748b;
+            font-weight: 600;
+            font-size: 0.75rem;
+            display: block;
+        }
+
+        .group-pill {
+            padding: 6px 8px;
+            border-radius: 6px;
+            font-weight: 800;
+            color: #ffffff;
+            display: inline-block;
+            font-size: 0.85rem;
+            width: 88%;
+        }
+
+        .g-1 { background-color: var(--grp-1); }
+        .g-2 { background-color: var(--grp-2); }
+        .g-3 { background-color: var(--grp-3); }
+        .g-4 { background-color: var(--grp-4); }
+        .g-5 { background-color: var(--grp-5); }
+
+        /* تنسيقات النافذة المنبثقة (Modal) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.25s ease;
+            padding: 15px;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-box {
+            background: #ffffff;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            transform: scale(0.9);
+            transition: transform 0.25s ease;
+            text-align: center;
+        }
+
+        .modal-overlay.active .modal-box {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            background: #f8fafc;
+            padding: 16px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-header h3 {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            font-size: 1.2rem;
+            color: #64748b;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .time-badge {
+            background: #f0f9ff;
+            color: var(--primary-blue);
+            border: 1px solid #bae6fd;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .duty-result-card {
+            padding: 16px;
+            border-radius: 12px;
+            color: #ffffff;
+            margin-bottom: 15px;
+        }
+
+        .duty-result-card .shift-label {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin-bottom: 4px;
+        }
+
+        .duty-result-card .group-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .duty-result-card .shift-time-range {
+            font-size: 0.85rem;
+            background: rgba(0,0,0,0.15);
+            padding: 4px 10px;
+            border-radius: 6px;
+            display: inline-block;
+            font-weight: 700;
+        }
+
+        footer {
+            text-align: center;
+            padding: 12px;
+            color: #64748b;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        /* تنسيقات PDF */
+        .pdf-export-mode {
+            background: #ffffff !important;
+            padding: 2px !important;
+            width: 750px !important;
+            margin: 0 auto !important;
+        }
+
+        .pdf-export-mode .month-card {
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        .pdf-export-mode .month-header {
+            margin-bottom: 6px !important;
+            padding-bottom: 4px !important;
+            border-bottom: 1.5px solid #0284c7 !important;
+            justify-content: center !important;
+            text-align: center !important;
+        }
+
+        .pdf-export-mode .month-title {
+            font-size: 0.95rem !important; 
+            font-weight: 800 !important;
+            color: #0284c7 !important;
+            width: 100% !important;
+            justify-content: center !important;
+            text-align: center !important;
+        }
+
+        .pdf-export-mode .action-btns {
+            display: none !important;
+        }
+
+        .pdf-export-mode table {
+            border: 1px solid #334155 !important;
+        }
+
+        .pdf-export-mode th {
+            background-color: #334155 !important;
+            color: #ffffff !important;
+            border: 1px solid #1e293b !important;
+            padding: 4px 1px !important;
+            font-size: 0.72rem !important;
+            -webkit-print-color-adjust: exact;
+        }
+
+        .pdf-export-mode .th-time {
+            font-size: 0.62rem !important;
+            color: #38bdf8 !important;
+        }
+
+        .pdf-export-mode td {
+            border: 1px solid #64748b !important;
+            padding: 3px 1px !important;
+            height: 24px !important;
+        }
+
+        .pdf-export-mode .day-cell { font-size: 0.68rem !important; }
+        .pdf-export-mode .hijri-date { font-size: 0.64rem !important; }
+        .pdf-export-mode .greg-date { font-size: 0.60rem !important; }
+
+        .pdf-export-mode .group-pill {
+            -webkit-print-color-adjust: exact;
+            font-size: 0.68rem !important;
+            padding: 2px 2px !important;
+            line-height: 1.2 !important;
+        }
+
+        .pdf-footer {
+            display: none;
+            text-align: center;
+            font-size: 0.65rem;
+            color: #475569;
+            margin-top: 6px;
+            font-weight: 700;
+        }
+
+        .pdf-export-mode .pdf-footer {
+            display: block;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div class="app-header">
+        <div class="header-brand">
+            <i class="fa-solid fa-calendar-check logo-icon"></i>
+            <div>
+                <h1>نظام متابعة الشفتات الذكي</h1>
+                <p>جدول توزيع ورديات المجموعات (دورة 25 يوماً)</p>
+            </div>
+        </div>
+        <div class="header-badge">
+            <i class="fa-solid fa-shield-halved"></i> جدول العرض العام
+        </div>
+    </div>
+
+    <!-- كارت من مداوم الآن -->
+    <div class="now-duty-card">
+        <div class="now-duty-info">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            <div>
+                <h2>متابعة الوردية الحالية المداومة</h2>
+                <p>استعلام فوري بناءً على الوقت الحالي للجوال</p>
+            </div>
+        </div>
+        <button class="btn-check-now" onclick="showCurrentDutyModal()">
+            <i class="fa-solid fa-circle-dot" style="color: #10b981;"></i> من مداوم الآن؟
+        </button>
+    </div>
+
+    <div class="">
+        <div class="">
+            <i class="fa-solid fa-calendar-day" style="color: var(--primary-blue);"></i>
+            <label for="">تاريخ بداية (صباح) المجموعة الأولى:</label>
+            <input type="" id="startDateInput">
+        </div>
+    </div>
+
+    <div id="scheduleContainer"></div>
+
+    <footer>
+        <p>جميع الحقوق محفوظة © 2026 | إعداد فهد المخلفي</p>
+    </footer>
+
+</div>
+
+<!-- النافذة المنبثقة (Modal) -->
+<div class="modal-overlay" id="dutyModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-user-clock" style="color: var(--primary-blue);"></i> الوردية المداومة الآن</h3>
+            <button class="modal-close" onclick="closeDutyModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="time-badge" id="modalCurrentTime">--:--</div>
+            <div class="duty-result-card" id="dutyResultCard">
+                <div class="shift-label" id="modalShiftLabel">الوردية الحالية</div>
+                <div class="group-title" id="modalGroupName">المجموعة ...</div>
+                <div class="shift-time-range" id="modalShiftRange">--:-- - --:--</div>
+            </div>
+            <p id="modalDateDetails" style="font-size: 0.82rem; color: #64748b; font-weight: 600;"></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const DEFAULT_START_DATE = '2026-09-14'; // الاثنين 14 سبتمبر 2026
+
+    const fullDaysOfWeek = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+    const hijriMonths = ["محرم", "صفر", "ربيع الأول", "ربيع الثاني", "جمادى الأولى", "جمادى الآخرة", "رجب", "شعبان", "رمضان", "شوال", "ذو القعدة", "ذو الحجة"];
+
+    const groups = [
+        { name: 'المجموعة الأولى', cssClass: 'g-1', hexColor: '0284C7', index: 0 },
+        { name: 'المجموعة الثانية', cssClass: 'g-2', hexColor: 'D97706', index: 4 },
+        { name: 'المجموعة الثالثة', cssClass: 'g-3', hexColor: '7C3AED', index: 3 },
+        { name: 'المجموعة الرابعة', cssClass: 'g-4', hexColor: '059669', index: 2 },
+        { name: 'المجموعة الخامسة', cssClass: 'g-5', hexColor: 'DC2626', index: 1 }
+    ];
+
+    function getHijriDetails(dateObj) {
+        const tempDate = new Date(dateObj.getTime());
+        tempDate.setHours(12, 0, 0, 0);
+
+        const formatter = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { day: 'numeric', month: 'numeric', year: 'numeric' });
+        const parts = formatter.formatToParts(tempDate);
+        let d, m, y;
+        parts.forEach(item => {
+            if (item.type === 'day') d = parseInt(item.value, 10);
+            if (item.type === 'month') m = parseInt(item.value, 10);
+            if (item.type === 'year') y = parseInt(item.value, 10);
+        });
+        return { day: d, monthIndex: m - 1, monthName: hijriMonths[m - 1] || "", year: y };
+    }
+
+    function getShiftType(cycleDay) {
+        if (cycleDay < 5) return 'MORNING';    
+        if (cycleDay < 8) return 'OFF';
+        if (cycleDay < 13) return 'AFTERNOON'; 
+        if (cycleDay < 16) return 'OFF';
+        if (cycleDay < 21) return 'NIGHT';     
+        return 'OFF';
+    }
+
+    function getWorkingGroupsForDay(dayDiff) {
+        let shifts = { MORNING: null, AFTERNOON: null, NIGHT: null };
+
+        groups.forEach(g => {
+            const groupOffset = g.index * 5;
+            const cycleDay = ((dayDiff - groupOffset) % 25 + 25) % 25;
+            const shiftType = getShiftType(cycleDay);
+
+            if (shiftType !== 'OFF') {
+                shifts[shiftType] = g;
+            }
+        });
+
+        return shifts;
+    }
+
+    /* وظيفة النافذة المنبثقة للتحقق من المداوم الآن */
+    function showCurrentDutyModal() {
+        const savedStartDate = localStorage.getItem('abumarzook_5group_order_a_h_d_g_b') || DEFAULT_START_DATE;
+        const startParts = savedStartDate.split('-');
+        const baseStartDate = new Date(startParts[0], startParts[1] - 1, startParts[2], 12, 0, 0, 0);
+
+        const now = new Date();
+        const currentHours = now.getHours();
+        const currentMinutes = now.getMinutes();
+        const formattedMinutes = currentMinutes < 10 ? '0' + currentMinutes : currentMinutes;
+
+        // تحديد الوردية الحالية واليوم التشغيلي
+        let shiftType = '';
+        let shiftTimeRange = '';
+        let shiftTitle = '';
+        let dutyDate = new Date(now.getTime());
+
+        if (currentHours >= 6 && currentHours < 14) {
+            shiftType = 'MORNING';
+            shiftTitle = 'وردية الصباح';
+            shiftTimeRange = '06:00 صباحاً - 02:00 ظهراً';
+        } else if (currentHours >= 14 && currentHours < 22) {
+            shiftType = 'AFTERNOON';
+            shiftTitle = 'وردية الظهر';
+            shiftTimeRange = '02:00 ظهراً - 10:00 مساءً';
+        } else {
+            shiftType = 'NIGHT';
+            shiftTitle = 'وردية الليل';
+            shiftTimeRange = '10:00 مساءً - 06:00 صباحاً';
+            
+            // إذا كنا بين 12 منتصف الليل و 6 صباحاً، الوردية تعود لليوم التشغيلي السابق
+            if (currentHours < 6) {
+                dutyDate.setDate(dutyDate.getDate() - 1);
+            }
+        }
+
+        // حساب فارق الأيام من بداية الدورة
+        dutyDate.setHours(12, 0, 0, 0);
+        const diffTime = dutyDate.getTime() - baseStartDate.getTime();
+        const dayDiff = Math.round(diffTime / (1000 * 3600 * 24));
+
+        const workingGroups = getWorkingGroupsForDay(dayDiff);
+        const onDutyGroup = workingGroups[shiftType];
+
+        // تحديث محتوى النافذة المنبثقة
+        document.getElementById('modalCurrentTime').innerText = `الوقت الحالي: ${now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}`;
+        document.getElementById('modalShiftLabel').innerText = shiftTitle;
+        document.getElementById('modalShiftRange').innerText = shiftTimeRange;
+
+        const card = document.getElementById('dutyResultCard');
+        const groupTitleElem = document.getElementById('modalGroupName');
+
+        if (onDutyGroup) {
+            groupTitleElem.innerText = onDutyGroup.name;
+            card.style.backgroundColor = `#${onDutyGroup.hexColor}`;
+        } else {
+            groupTitleElem.innerText = 'لا يوجد مجموعات';
+            card.style.backgroundColor = '#64748b';
+        }
+
+        const hDetails = getHijriDetails(dutyDate);
+        const dayName = fullDaysOfWeek[dutyDate.getDay()];
+        document.getElementById('modalDateDetails').innerText = `${dayName} | ${hDetails.day} ${hDetails.monthName} ${hDetails.year} هـ (${dutyDate.getDate()}/${dutyDate.getMonth() + 1}/${dutyDate.getFullYear()} م)`;
+
+        // إظهار النافذة
+        document.getElementById('dutyModal').classList.add('active');
+    }
+
+    function closeDutyModal() {
+        document.getElementById('dutyModal').classList.remove('active');
+    }
+
+    // إغلاق النافذة المنبثقة عند النقر خارجها
+    document.addEventListener('click', (e) => {
+        const modal = document.getElementById('dutyModal');
+        if (e.target === modal) {
+            closeDutyModal();
+        }
+    });
+
+    function generateViewSchedule() {
+        const startDateInput = document.getElementById('startDateInput');
+        
+        let savedStartDate = localStorage.getItem('abumarzook_5group_order_a_h_d_g_b');
+        if (!savedStartDate) {
+            savedStartDate = DEFAULT_START_DATE;
+            localStorage.setItem('abumarzook_5group_order_a_h_d_g_b', savedStartDate);
+        }
+
+        startDateInput.value = savedStartDate;
+
+        const startParts = savedStartDate.split('-');
+        const baseStartDate = new Date(startParts[0], startParts[1] - 1, startParts[2], 12, 0, 0, 0);
+
+        const container = document.getElementById('scheduleContainer');
+        container.innerHTML = '';
+
+        const today = new Date();
+        today.setHours(12, 0, 0, 0);
+        const currentHijri = getHijriDetails(today);
+        let targetMonths = [];
+
+        let currentHYear = currentHijri.year;
+        let currentHMonth = currentHijri.monthIndex;
+
+        for (let m = 0; m < 6; m++) {
+            targetMonths.push({ year: currentHYear, monthIndex: currentHMonth, monthName: hijriMonths[currentHMonth] });
+            currentHMonth++;
+            if (currentHMonth > 11) {
+                currentHMonth = 0;
+                currentHYear++;
+            }
+        }
+
+        targetMonths.forEach(tMonth => {
+            const monthKey = `${tMonth.year}-${tMonth.monthIndex}`;
+            
+            const card = document.createElement('div');
+            card.className = 'month-card';
+            card.id = `card-${monthKey}`;
+
+            card.innerHTML = `
+                <div class="month-header">
+                    <div class="month-title">
+                        <i class="fa-solid fa-calendar-days" style="color: var(--primary-blue);"></i> جدول ورديات شهر ${tMonth.monthName} ${tMonth.year} هـ
+                    </div>
+                    <div class="action-btns">
+                        <button class="btn-action btn-pdf" onclick="downloadPDF('${monthKey}', '${tMonth.monthName} ${tMonth.year}')">
+                            <i class="fa-solid fa-file-pdf"></i> تنزيل PDF
+                        </button>
+                        <button class="btn-action btn-excel" onclick="downloadExcel('${monthKey}', '${tMonth.monthName} ${tMonth.year}')">
+                            <i class="fa-solid fa-file-excel"></i> تنزيل Excel
+                        </button>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 15%;">اليوم</th>
+                                <th style="width: 22%;">التاريخ</th>
+                                <th style="width: 21%;">الصباح <span class="th-time">06:00 ص - 02:00 ظ</span></th>
+                                <th style="width: 21%;">الظهر <span class="th-time">02:00 ظ - 10:00 م</span></th>
+                                <th style="width: 21%;">الليل <span class="th-time">10:00 م - 06:00 ص</span></th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="pdf-footer">
+                    جميع الحقوق محفوظة © 2026 | إعداد فهد المخلفي
+                </div>
+            `;
+
+            const tbody = card.querySelector('tbody');
+            let rowsHTML = '';
+
+            for (let i = -400; i <= 800; i++) {
+                const currentDate = new Date(baseStartDate.getTime());
+                currentDate.setDate(baseStartDate.getDate() + i);
+
+                const hDetails = getHijriDetails(currentDate);
+
+                if (hDetails.year === tMonth.year && hDetails.monthIndex === tMonth.monthIndex) {
+                    const dayName = fullDaysOfWeek[currentDate.getDay()];
+                    
+                    const hijriStr = `${hDetails.day} / ${hDetails.monthIndex + 1} / ${hDetails.year} هـ`;
+                    const gregStr = `${currentDate.getDate()} / ${currentDate.getMonth() + 1} / ${currentDate.getFullYear()} م`;
+
+                    const workingGroups = getWorkingGroupsForDay(i);
+
+                    const morningHtml = workingGroups.MORNING ? `<span class="group-pill ${workingGroups.MORNING.cssClass}">${workingGroups.MORNING.name}</span>` : '-';
+                    const afternoonHtml = workingGroups.AFTERNOON ? `<span class="group-pill ${workingGroups.AFTERNOON.cssClass}">${workingGroups.AFTERNOON.name}</span>` : '-';
+                    const nightHtml = workingGroups.NIGHT ? `<span class="group-pill ${workingGroups.NIGHT.cssClass}">${workingGroups.NIGHT.name}</span>` : '-';
+
+                    rowsHTML += `
+                        <tr>
+                            <td class="day-cell">${dayName}</td>
+                            <td class="date-cell">
+                                <span class="hijri-date">${hijriStr}</span>
+                                <span class="greg-date">${gregStr}</span>
+                            </td>
+                            <td>${morningHtml}</td>
+                            <td>${afternoonHtml}</td>
+                            <td>${nightHtml}</td>
+                        </tr>
+                    `;
+                }
+            }
+
+            tbody.innerHTML = rowsHTML;
+            container.appendChild(card);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const startDateInput = document.getElementById('startDateInput');
+        
+        startDateInput.addEventListener('change', (e) => {
+            if (e.target.value) {
+                localStorage.setItem('abumarzook_5group_order_a_h_d_g_b', e.target.value);
+                generateViewSchedule();
+            }
+        });
+
+        generateViewSchedule();
+    });
+
+    function downloadPDF(monthKey, monthTitleStr) {
+        const element = document.getElementById(`card-${monthKey}`);
+        element.classList.add('pdf-export-mode');
+
+        const opt = {
+            margin:       [2, 2, 2, 2],
+            filename:     `جدول_ورديات_${monthTitleStr.replace(/\s+/g, '_')}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true, logging: false, scrollX: 0, scrollY: 0 },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(element).save().then(() => {
+            element.classList.remove('pdf-export-mode');
+        }).catch(err => {
+            console.error("PDF Export Error:", err);
+            element.classList.remove('pdf-export-mode');
+        });
+    }
+
+    function downloadExcel(monthKey, monthTitleStr) {
+        const card = document.getElementById(`card-${monthKey}`);
+        const table = card.querySelector('table');
+        
+        const thinBorder = {
+            top: { style: "thin", color: { rgb: "94A3B8" } },
+            bottom: { style: "thin", color: { rgb: "94A3B8" } },
+            left: { style: "thin", color: { rgb: "94A3B8" } },
+            right: { style: "thin", color: { rgb: "94A3B8" } }
+        };
+
+        const titleStyle = {
+            font: { name: "Cairo", sz: 14, bold: true, color: { rgb: "0284C7" } },
+            alignment: { horizontal: "center", vertical: "center" }
+        };
+
+        const headerStyle = {
+            font: { name: "Cairo", sz: 11, bold: true, color: { rgb: "FFFFFF" } },
+            fill: { fgColor: { rgb: "334155" } },
+            alignment: { horizontal: "center", vertical: "center", wrapText: true },
+            border: thinBorder
+        };
+
+        const defaultCellStyle = {
+            font: { name: "Cairo", sz: 10 },
+            alignment: { horizontal: "center", vertical: "center" },
+            border: thinBorder
+        };
+
+        const dayCellStyle = {
+            font: { name: "Cairo", sz: 10, bold: true },
+            fill: { fgColor: { rgb: "F1F5F9" } },
+            alignment: { horizontal: "center", vertical: "center" },
+            border: thinBorder
+        };
+
+        let wsData = [];
+        
+        wsData.push([{ v: `جدول ورديات شهر ${monthTitleStr} هـ`, s: titleStyle }]);
+        wsData.push([]);
+
+        const headers = [
+            "اليوم",
+            "التاريخ الهجري",
+            "التاريخ الميلادي",
+            "الصباح\n(06:00 ص - 02:00 ظ)",
+            "الظهر\n(02:00 ظ - 10:00 م)",
+            "الليل\n(10:00 م - 06:00 ص)"
+        ];
+
+        wsData.push(headers.map(h => ({ v: h, s: headerStyle })));
+
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            const day = row.cells[0].innerText.trim();
+            const hijri = row.cells[1].querySelector('.hijri-date').innerText.trim();
+            const greg = row.cells[1].querySelector('.greg-date').innerText.trim();
+            const morning = row.cells[2].innerText.trim();
+            const afternoon = row.cells[3].innerText.trim();
+            const night = row.cells[4].innerText.trim();
+
+            function getGroupStyle(groupName) {
+                const grp = groups.find(g => g.name === groupName);
+                if (grp) {
+                    return {
+                        font: { name: "Cairo", sz: 10, bold: true, color: { rgb: "FFFFFF" } },
+                        fill: { fgColor: { rgb: grp.hexColor } },
+                        alignment: { horizontal: "center", vertical: "center" },
+                        border: thinBorder
+                    };
+                }
+                return defaultCellStyle;
+            }
+
+            wsData.push([
+                { v: day, s: dayCellStyle },
+                { v: hijri, s: defaultCellStyle },
+                { v: greg, s: defaultCellStyle },
+                { v: morning, s: getGroupStyle(morning) },
+                { v: afternoon, s: getGroupStyle(afternoon) },
+                { v: night, s: getGroupStyle(night) }
+            ]);
+        });
+
+        const ws = XLSX.utils.aoa_to_sheet([]);
+        
+        wsData.forEach((row, rIdx) => {
+            row.forEach((cell, cIdx) => {
+                const cellRef = XLSX.utils.encode_cell({ r: rIdx, c: cIdx });
+                if (typeof cell === 'object') {
+                    ws[cellRef] = cell;
+                } else {
+                    ws[cellRef] = { v: cell, s: defaultCellStyle };
+                }
+            });
+        });
+
+        ws['!ref'] = XLSX.utils.encode_range({
+            s: { r: 0, c: 0 },
+            e: { r: wsData.length - 1, c: 5 }
+        });
+
+        if (!ws['!views']) ws['!views'] = [];
+        ws['!views'].push({ RTL: true });
+
+        ws['!cols'] = [
+            { wch: 14 },
+            { wch: 20 },
+            { wch: 20 },
+            { wch: 26 },
+            { wch: 26 },
+            { wch: 26 }
+        ];
+
+        ws['!rows'] = [
+            { hpt: 30 },
+            { hpt: 15 },
+            { hpt: 28 }
+        ];
+        for (let i = 3; i < wsData.length; i++) {
+            ws['!rows'].push({ hpt: 24 });
+        }
+
+        ws['!merges'] = [
+            { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }
+        ];
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "الشفتات الشهري");
+        XLSX.writeFile(wb, `جدول_ورديات_${monthTitleStr.replace(/\s+/g, '_')}.xlsx`);
+    }
+</script>
+</body>
