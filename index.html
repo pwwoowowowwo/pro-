@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <!-- إعدادات PWA والجوال -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="نظام شفتك">
+    <meta name="theme-color" content="#0284c7">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="data:application/manifest+json;utf8,{\"name\":\"نظام شفتك المطور\",\"short_name\":\"شفتك\",\"start_url\":\".\",\"display\":\"standalone\",\"background_color\":\"#0284c7\",\"theme_color\":\"#0284c7\",\"orientation\":\"portrait\",\"icons\":[{\"src\":\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/calendar-check.svg\",\"sizes\":\"192x192\",\"type\":\"image/svg+xml\"}]}">
+
+    <title>نظام شفتك المطور</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #0284c7;
+            --primary-hover: #0369a1;
+            --primary-light: #e0f2fe;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text-main: #0f172a;
+            --text-sub: #64748b;
+            --border: #e2e8f0;
+            --border-hover: #38bdf8;
+            --card-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.05);
+            --card-shadow-active: 0 8px 20px -4px rgba(2, 132, 199, 0.2);
+        }
+
+        [data-theme="dark"] {
+            --primary: #38bdf8;
+            --primary-hover: #0284c7;
+            --primary-light: #1e293b;
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --border: #334155;
+            --border-hover: #38bdf8;
+            --card-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.3);
+            --card-shadow-active: 0 8px 20px -4px rgba(56, 189, 248, 0.25);
+        }
+
+        * { 
+            box-sizing: border-box; 
+            transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.2s ease, box-shadow 0.2s ease; 
+        }
+
+        body { 
+            background: var(--bg); 
+            color: var(--text-main); 
+            font-family: 'Cairo', sans-serif; 
+            margin: 0; 
+            padding-bottom: 90px; 
+            user-select: none;
+            min-height: 100dvh;
+        }
+        
+        /* Splash Screen */
+        #splashScreen { 
+            position: fixed; 
+            inset: 0; 
+            background: var(--primary); 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            z-index: 9999; 
+            transition: opacity 0.4s ease, visibility 0.4s; 
+        }
+        .splash-text { color: white; font-size: 1.6rem; font-weight: 800; margin-bottom: 20px; }
+        .progress-bar { width: 220px; height: 5px; background: rgba(255,255,255,0.3); border-radius: 3px; overflow: hidden; }
+        .progress-fill { height: 100%; background: white; width: 0%; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        /* App Container */
+        .container { max-width: 600px; margin: 0 auto; padding: 20px 16px; }
+        
+        /* Header Card */
+        .header-card { 
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 50%, #075985 100%); 
+            color: white; 
+            padding: 28px 20px 22px 20px; 
+            border-radius: 24px; 
+            text-align: center; 
+            margin-bottom: 18px; 
+            box-shadow: 0 12px 25px -5px rgba(2, 132, 199, 0.35); 
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .header-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(8px);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header-title-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .header-card h1 { 
+            margin: 0; 
+            font-size: 1.5rem; 
+            font-weight: 900; 
+            letter-spacing: -0.3px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        }
+
+        .header-icon-box {
+            width: 42px;
+            height: 42px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.2);
+            animation: pulseIcon 3s infinite ease-in-out;
+        }
+
+        @keyframes pulseIcon {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.06); }
+        }
+
+        /* Theme Toggle Button */
+        .theme-btn {
+            position: absolute; 
+            top: 16px; 
+            left: 16px; 
+            background: rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.25); 
+            color: white; 
+            border-radius: 12px; 
+            width: 38px; 
+            height: 38px;
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+        }
+
+        .theme-btn:active { transform: scale(0.9); }
+
+        /* Install Banner */
+        .install-banner {
+            background: linear-gradient(90deg, #16a34a, #22c55e);
+            color: white;
+            border-radius: 16px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.25);
+            animation: slideDown 0.4s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .install-banner-text {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .install-btn-action {
+            background: white;
+            color: #16a34a;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-weight: 800;
+            font-family: inherit;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .install-btn-action:active { transform: scale(0.95); }
+
+        /* زر جدول الورديات الشهري المطور */
+        .monthly-schedule-btn {
+            background: linear-gradient(135deg, #0284c7 0%, #0f766e 100%);
+            color: white;
+            border-radius: 18px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+            box-shadow: 0 6px 18px -3px rgba(2, 132, 199, 0.3);
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .monthly-schedule-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 22px -4px rgba(2, 132, 199, 0.4);
+        }
+
+        .monthly-schedule-btn:active {
+            transform: scale(0.98);
+        }
+
+        .monthly-btn-content {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .monthly-btn-icon {
+            width: 44px;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            backdrop-filter: blur(4px);
+        }
+
+        .monthly-btn-text h3 {
+            margin: 0;
+            font-size: 1.05rem;
+            font-weight: 800;
+        }
+
+        .monthly-btn-text span {
+            font-size: 0.8rem;
+            opacity: 0.9;
+            display: block;
+            margin-top: 2px;
+        }
+
+        /* Search & Info */
+        .search-box { position: relative; margin-bottom: 15px; }
+        .search-box input {
+            width: 100%; padding: 12px 42px 12px 15px; background: var(--surface);
+            border: 1.5px solid var(--border); border-radius: 14px; color: var(--text-main);
+            font-family: inherit; outline: none; font-size: 0.95rem;
+        }
+        .search-box input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); }
+        .search-box i { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: var(--text-sub); }
+
+        .info-box { 
+            background: var(--primary-light); color: var(--primary); padding: 12px; 
+            border-radius: 14px; text-align: center; margin-bottom: 20px; 
+            font-weight: 700; border: 1px solid var(--border); font-size: 0.9rem;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+
+        /* Group Cards Section */
+        .groups-list { display: flex; flex-direction: column; gap: 12px; }
+
+        .group-card { 
+            background: var(--surface); 
+            border-radius: 16px; 
+            padding: 16px 18px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            border: 2px solid var(--border);
+            box-shadow: var(--card-shadow);
+            cursor: pointer; 
+            position: relative;
+            overflow: hidden;
+        }
+
+        .group-card:hover { 
+            border-color: var(--border-hover); 
+            transform: translateY(-2px); 
+            box-shadow: var(--card-shadow-active);
+        }
+
+        .group-card:active {
+            transform: scale(0.98);
+            background: var(--primary-light);
+        }
+
+        .group-card-left { display: flex; align-items: center; gap: 15px; }
+
+        .icon-box { 
+            width: 50px; 
+            height: 50px; 
+            background: rgba(2, 132, 199, 0.1); 
+            color: var(--primary); 
+            border-radius: 14px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+
+        .group-title { margin: 0; font-size: 1.05rem; font-weight: 800; color: var(--text-main); }
+        .group-desc { margin-top: 3px; color: var(--text-sub); font-size: 0.85rem; display: block; }
+
+        .arrow-icon {
+            color: var(--text-sub);
+            font-size: 0.9rem;
+            background: var(--bg);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .group-card:hover .arrow-icon {
+            background: var(--primary);
+            color: white;
+            transform: translateX(-4px);
+        }
+
+        .badge-maintenance {
+            background: #fef3c7;
+            color: #d97706;
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-weight: 700;
+            margin-right: 8px;
+        }
+
+        /* Popup Modals */
+        .modal-overlay { 
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6); 
+            backdrop-filter: blur(4px); display: none; align-items: center; 
+            justify-content: center; padding: 20px; z-index: 2000; 
+            cursor: pointer;
+        }
+        .popup-content { 
+            background: var(--surface); padding: 28px; border-radius: 24px; 
+            text-align: center; max-width: 400px; width: 100%; border: 1px solid var(--border);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: default;
+        }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* حقوق المطور */
+        .about-footer-line {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 18px;
+            padding-top: 14px;
+            border-top: 1px solid var(--border);
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            font-weight: 700;
+        }
+        .about-footer-line .vertical-separator {
+            width: 1px;
+            height: 14px;
+            background-color: var(--text-sub);
+            opacity: 0.5;
+        }
+
+        .install-guide-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-align: right;
+            background: var(--bg);
+            padding: 10px 14px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            font-size: 0.88rem;
+        }
+
+        /* Navigation Bar */
+        .bottom-nav { 
+            position: fixed; bottom: 0; width: 100%; height: 70px; 
+            background: var(--surface); border-top: 1px solid var(--border); 
+            display: flex; justify-content: space-around; align-items: center; z-index: 1000;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .nav-item { color: var(--text-sub); text-align: center; font-size: 0.72rem; cursor: pointer; flex: 1; padding: 8px 0; }
+        .nav-item i { font-size: 1.15rem; margin-bottom: 3px; }
+        .nav-item.active { color: var(--primary); font-weight: 700; }
+    </style>
+</head>
+<body>
+
+<!-- Splash Screen -->
+<div id="splashScreen">
+    <div class="splash-text">🗓️ نظام شفتك المطور 🗓️</div>
+    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+</div>
+
+<!-- Modal: Developer Message & About App -->
+<div id="popup" class="modal-overlay" onclick="closePopup()">
+    <div class="popup-content" onclick="event.stopPropagation()">
+        <i class="fa-solid fa-heart" style="color: #ef4444; font-size: 2.8rem; margin-bottom: 12px;"></i>
+        <h2 style="color:var(--primary); margin-top: 0;">عن التطبيق</h2>
+        <p style="line-height: 1.6; color: var(--text-main); font-size: 0.95rem; margin-bottom: 15px;">
+            "إلى زملائي الأعزاء، شكراً لكم على دعمكم المستمر. هذا النظام اجتهاد شخصي تم تطويره بناءً على رغبة بعض الزملاء، وهو برنامج يسهل عليك حسبة دوامك ومعرفة أيام الاستلام وأيام التسليم ليسهل عليك أمورك، ونعتذر عن التقصير."<br><br>
+            <strong>- أخوكم فهد المخلفي</strong>
+        </p>
+
+        <div class="about-footer-line">
+            <span>المطور فهد مرزوق</span>
+            <span class="vertical-separator"></span>
+            <span>جميع الحقوق محفوظة © 2026</span>
+        </div>
+
+        <button onclick="closePopup()" style="background:var(--primary); color:white; border:none; padding:12px; border-radius:12px; cursor:pointer; width: 100%; font-weight:700; margin-top: 16px;">إغلاق</button>
+    </div>
+</div>
+
+<!-- Modal: Install App Guide -->
+<div id="installModal" class="modal-overlay" onclick="closeInstallModal()">
+    <div class="popup-content" onclick="event.stopPropagation()">
+        <i class="fa-solid fa-mobile-screen-button" style="color: var(--primary); font-size: 2.8rem; margin-bottom: 12px;"></i>
+        <h3 style="color:var(--text-main); margin-top: 0;">تثبيت التطبيق على الشاشة</h3>
+        
+        <div id="autoInstallSection" style="display:none; margin-bottom: 15px;">
+            <p style="font-size: 0.9rem; color: var(--text-sub);">اضغط على الزر أدناه لتثبيت التطبيق فوراً على شاشة جوالك:</p>
+            <button onclick="triggerPWAInstall()" style="background:#22c55e; color:white; border:none; padding:12px; border-radius:12px; cursor:pointer; width: 100%; font-weight:800; font-size: 1rem;">
+                <i class="fa-solid fa-plus-circle"></i> تثبيت التطبيق الآن
+            </button>
+            <hr style="border:0; border-top:1px dashed var(--border); margin: 15px 0;">
+        </div>
+
+        <div class="install-guide-item">
+            <i class="fa-brands fa-apple" style="font-size: 1.4rem; color: #64748b;"></i>
+            <div><strong>للآيفون (Safari):</strong> اضغط زر المشاركة <i class="fa-solid fa-share-from-square"></i> ثم اختر <b>"إضافة إلى الشاشة الرئيسية"</b>.</div>
+        </div>
+
+        <div class="install-guide-item">
+            <i class="fa-brands fa-android" style="font-size: 1.4rem; color: #22c55e;"></i>
+            <div><strong>للأندرويد (Chrome):</strong> اضغط خيارات المتصفح <i class="fa-solid fa-ellipsis-vertical"></i> ثم اختر <b>"تثبيت التطبيق"</b> أو <b>"الإضافة إلى الشاشة"</b>.</div>
+        </div>
+
+        <button onclick="closeInstallModal()" style="background:var(--primary); color:white; border:none; padding:10px; border-radius:12px; cursor:pointer; width: 100%; font-weight:700; margin-top: 10px;">إغلاق</button>
+    </div>
+</div>
+
+<!-- Main App -->
+<div class="container">
+    <!-- Header -->
+    <div class="header-card">
+        <button class="theme-btn" onclick="toggleTheme()" title="تبديل المظهر" aria-label="تبديل الوضع الليلي والنهاري">
+            <i class="fa-solid fa-moon" id="themeIcon"></i>
+        </button>
+
+        <div class="header-badge">
+            <i class="fa-solid fa-bolt" style="color: #fde047;"></i>
+            <span>نظام الشفتات المطور v2.0</span>
+        </div>
+
+        <div class="header-title-wrapper">
+            <div class="header-icon-box">
+                <i class="fa-solid fa-calendar-check"></i>
+            </div>
+            <h1>نظام شفتك</h1>
+        </div>
+    </div>
+
+    <!-- شريط التثبيت التفاعلي المباشر -->
+    <div id="topInstallBanner" class="install-banner" style="display: none;">
+        <div class="install-banner-text">
+            <i class="fa-solid fa-mobile-screen" style="font-size: 1.3rem;"></i>
+            <span>ثبّت التطبيق على شاشتك للعمل بدون إنترنت</span>
+        </div>
+        <button class="install-btn-action" onclick="triggerPWAInstall()">تثبيت</button>
+    </div>
+
+
+    <!-- Search Box -->
+    <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="searchInput" oninput="filterGroups()" placeholder="ابحث عن وردية أو قسم...">
+    </div>
+
+    <div class="info-box">
+        <i class="fa-solid fa-circle-info"></i> اختر المجموعة لمعرفة الجدول
+    </div>
+
+    <!-- Groups List -->
+    <div class="groups-list" id="groupsContainer"></div>
+</div>
+
+<!-- Bottom Navigation -->
+<nav class="bottom-nav">
+    <div class="nav-item active"><i class="fa-solid fa-house"></i><br>الرئيسية</div>
+    <div class="nav-item" onclick="openMonthlySchedule()"><i class="fa-solid fa-calendar-days"></i><br>الجدول الشهري</div>
+    <div class="nav-item" onclick="openInstallModal()"><i class="fa-solid fa-circle-plus"></i><br>إضافة للشاشة</div>
+    <div class="nav-item" onclick="openPopup()"><i class="fa-solid fa-envelope-open-text"></i><br>عن التطبيق</div>
+</nav>
+
+<script>
+    const groups = [
+        { title: 'المجموعة الأولى', desc: 'جدول الوردية الأولى', icon: 'fa-users', link: 'group1.html' },
+        { title: 'المجموعة الثانية', desc: 'جدول الوردية الثانية', icon: 'fa-users', link: 'group2.html' },
+        { title: 'المجموعة الثالثة', desc: 'جدول الوردية الثالثة', icon: 'fa-users', link: 'group3.html' },
+        { title: 'المجموعة الرابعة', desc: 'جدول الوردية الرابعة', icon: 'fa-users', link: 'group4.html' },
+        { title: 'المجموعة الخامسة', desc: 'جدول الوردية الخامسة', icon: 'fa-users', link: 'group5.html' },
+        { title: 'جدول الاستلامات', desc: 'جدول الورديات الشهري', icon: '⁠fa-solid fa-calendar', link: 'jdul.html' },
+
+        
+        
+    ];
+
+    let deferredPrompt = null;
+
+    // فتح صفحة الجدول الشهري
+    function openMonthlySchedule() {
+        window.location.href = 'monthly_schedule.html';
+    }
+
+    // التقاط حدث التثبيت PWA
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        
+        const banner = document.getElementById('topInstallBanner');
+        if(banner) banner.style.display = 'flex';
+
+        const autoSec = document.getElementById('autoInstallSection');
+        if(autoSec) autoSec.style.display = 'block';
+    });
+
+    // تسجيل Service Worker محسّن لدعم التصفح الأوفلاين الكامل
+    if ('serviceWorker' in navigator) {
+        const swCode = `
+            const CACHE_NAME = 'shiftak-v2.1';
+            const ASSETS = ['./', 'https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'];
+            
+            self.addEventListener('install', (e) => {
+                e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
+            });
+
+            self.addEventListener('activate', (e) => {
+                e.waitUntil(caches.keys().then(keys => Promise.all(keys.map(k => k !== CACHE_NAME ? caches.delete(k) : null))).then(() => self.clients.claim()));
+            });
+
+            self.addEventListener('fetch', (e) => {
+                e.respondWith(
+                    caches.match(e.request).then(cached => cached || fetch(e.request).then(res => {
+                        return caches.open(CACHE_NAME).then(cache => {
+                            if (e.request.method === 'GET' && e.request.url.startsWith('http')) {
+                                cache.put(e.request, res.clone());
+                            }
+                            return res;
+                        });
+                    }))
+                );
+            });
+        `;
+        const blob = new Blob([swCode], { type: 'application/javascript' });
+        navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.setAttribute('data-theme', 'dark');
+            document.getElementById('themeIcon').className = 'fa-solid fa-sun';
+        }
+
+        const progress = document.getElementById('progress');
+        setTimeout(() => { progress.style.width = '100%'; }, 50);
+        
+        setTimeout(() => { 
+            const splash = document.getElementById('splashScreen');
+            splash.style.opacity = '0'; 
+            setTimeout(() => { 
+                splash.style.display = 'none'; 
+                if (!localStorage.getItem('has_seen_about_dialog_2026')) {
+                    openPopup();
+                }
+            }, 400); 
+        }, 1100);
+
+        renderGroups(groups);
+    });
+
+    function renderGroups(data) {
+        const container = document.getElementById('groupsContainer');
+        if(data.length === 0) {
+            container.innerHTML = `<p style="text-align:center; padding: 20px; color: var(--text-sub);">لا توجد نتائج متطابقة</p>`;
+            return;
+        }
+
+        container.innerHTML = data.map(g => `
+            <div class="group-card" onclick="${g.type === 'maintenance' ? "alert('هذا القسم تحت الصيانة حالياً')" : "window.location.href='" + g.link + "'"}">
+                <div class="group-card-left">
+                    <div class="icon-box"><i class="fa-solid ${g.icon}"></i></div>
+                    <div>
+                        <h3 class="group-title">
+                            ${g.title}
+                            ${g.type === 'maintenance' ? '<span class="badge-maintenance">صيانة</span>' : ''}
+                        </h3>
+                        <span class="group-desc">${g.desc}</span>
+                    </div>
+                </div>
+                <div class="arrow-icon">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function normalizeArabic(text) {
+        return text
+            .replace(/[\u064B-\u065F]/g, '')
+            .replace(/[أإآ]/g, 'ا')
+            .replace(/ة/g, 'ه')
+            .replace(/ى/g, 'ي')
+            .trim();
+    }
+
+    function filterGroups() {
+        const query = normalizeArabic(document.getElementById('searchInput').value.toLowerCase());
+        const filtered = groups.filter(g => 
+            normalizeArabic(g.title.toLowerCase()).includes(query) || 
+            normalizeArabic(g.desc.toLowerCase()).includes(query)
+        );
+        renderGroups(filtered);
+    }
+
+    function openPopup() { document.getElementById('popup').style.display = 'flex'; }
+    function closePopup() { 
+        document.getElementById('popup').style.display = 'none'; 
+        localStorage.setItem('has_seen_about_dialog_2026', 'true');
+    }
+
+    function openInstallModal() { document.getElementById('installModal').style.display = 'flex'; }
+    function closeInstallModal() { document.getElementById('installModal').style.display = 'none'; }
+
+    function triggerPWAInstall() {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    document.getElementById('topInstallBanner').style.display = 'none';
+                }
+                deferredPrompt = null;
+                closeInstallModal();
+            });
+        } else {
+            openInstallModal();
+        }
+    }
+
+    function toggleTheme() {
+        const isDark = document.body.getAttribute('data-theme') === 'dark';
+        const icon = document.getElementById('themeIcon');
+        
+        if (isDark) {
+            document.body.removeAttribute('data-theme');
+            localStorage.setItem('theme', 'light');
+            icon.className = 'fa-solid fa-moon';
+        } else {
+            document.body.setAttribute('data-theme', 'dark');
+            localStorage.setItem('theme', 'dark');
+            icon.className = 'fa-solid fa-sun';
+        }
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closePopup();
+            closeInstallModal();
+        }
+    });
+</script>
+</body>
